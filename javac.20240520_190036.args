@@ -1,0 +1,5 @@
+-d
+bin
+-cp
+src:lib/json-20240303.jar
+src/App.java
