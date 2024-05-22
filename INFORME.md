@@ -28,9 +28,9 @@ Pueden usar esta checklist para indicar el avance.
 - [x] Implementarla
 - [] Extracción
     - [ ] Implementación de heurísticas
-- [ ] Clasificación
-    - [ ] Por tópicos
-    - [ ] Por categorías
+- [x] Clasificación
+    - [x] Por tópicos
+    - [x] Por categorías
 - Estadísticas
     - [ ] Por tópicos
     - [ ] Por categorías
