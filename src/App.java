@@ -3,11 +3,18 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import feed.Article;
 import feed.FeedParser;
 import namedEntities.*;
 import namedEntities.heuristics.CapitalizedWordHeuristic;
+// Esto hay que preguntar si podemos importar
+import java.util.HashSet;
+import java.util.Set;
+// 
 import utils.JSONFilter;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -74,51 +81,83 @@ public class App {
             System.out.println("Computing named entities using " + config.getHeuristicConfig());
             // TODO: compute named entities using the selected heuristic
             CapitalizedWordHeuristic heuristic = new CapitalizedWordHeuristic();
+
             List<String> candidatos = new ArrayList<>();
             // For para obtener los posibles Names Entities
-            for (Article article : allArticles) { 
-                candidatos = heuristic.extractCandidates(article.getDescription() + article.getTitle());
+            for (Article article : allArticles) {
+                // Guardo la descripcion del articulo en un string
+                candidatos.addAll(heuristic.extractCandidates(article.getDescription()));
             }
             ////////////////////// A PARTIR DE ACA ES TERRENO NO EXPLORADO /////////////////////////////
-            try{
-                String content = new String(Files.readAllBytes(Paths.get("src/data/dictionary.json")), StandardCharsets.UTF_8);
-                JSONArray jsonArray = new JSONArray(content);
-                // Recorro cada candidato de la lista de candidatos
-                for (String candidate : candidatos){
-                    // For para recorrer el json y poderme setear en la label correcta
-                    for(int pos = 0; pos < jsonArray.length(); pos++){
-                        // Convierto en json object para poder acceder a los datos de la pos
-                        JSONObject jsonObject = jsonArray.getJSONObject(pos);
-                        // Chequeo si el candidato esta en el json
-                        if(jsonObject.getString("label") == candidate){
-                            // Creo una entidad nombrada con su categoria y topicos correspondiente
-                            NamedEntity namedEntity = new NamedEntity(new Category(jsonObject.getString("Category")),jsonObject.getString("label"));
-                            // For para recorrer los topicos de la entidad y cargarlos
-                            JSONArray topics_entity = jsonObject.getJSONArray("topics");
-                            for(int i = 0; i < topics_entity.length(); i++){
-                                namedEntity.addTopic(new Topics(topics_entity.getString(i)));
-                            }
-                            // Imprimo la entidad nombrada
-                            namedEntity.namedEntityPrint();
-                        }
-                        // Si no esta en el json, se crea una entidad nombrada con categoria OTHER y topicos OTHER
-                        else{
-                            NamedEntity namedEntity = new NamedEntity(new Category("OTHER"),jsonObject.getString("label"));
-                            namedEntity.addTopic(new Topics("OTHER"));
+        try {
+            String content = new String(Files.readAllBytes(Paths.get("src/data/dictionary.json")), StandardCharsets.UTF_8);
+            JSONArray jsonArray = new JSONArray(content);
+            Set<String> candidatosSet = new HashSet<>(candidatos);
 
-                            namedEntity.namedEntityPrint();
+            // Mapa para almacenar las entidades nombradas
+            Map<String, NamedEntity> namedEntities = new HashMap<>();
+
+            for (String candidate : candidatos) {
+                boolean found = false;
+                for (int pos = 0; pos < jsonArray.length(); pos++) {
+                    JSONObject jsonObject = jsonArray.getJSONObject(pos);
+                    if (jsonObject.has("keywords")) {
+                        JSONArray keywords = jsonObject.getJSONArray("keywords");
+                        for (int i = 0; i < keywords.length(); i++) {
+                            String keyword = keywords.getString(i);
+
+                            if (keyword.equalsIgnoreCase(candidate)) {
+                                NamedEntity namedEntity;
+                                boolean isNewEntity = false;
+                                if (namedEntities.containsKey(candidate)) {
+                                    // Si la entidad ya existe, incrementa el campo repetitions
+                                    namedEntity = namedEntities.get(candidate);
+                                    namedEntity.incrementRepetitions();
+                                } else {
+                                    // Si la entidad no existe, crea una nueva y añádela al mapa
+                                    namedEntity = new NamedEntity(new Category(jsonObject.getString("Category")), jsonObject.getString("label"));
+                                    namedEntities.put(candidate, namedEntity);
+                                    isNewEntity = true;
+                                }
+                            
+                                if (jsonObject.has("Topics") && isNewEntity) {
+                                    JSONArray topics_entity = jsonObject.getJSONArray("Topics");
+                                    for (int j = 0; j < topics_entity.length(); j++) {
+                                        namedEntity.addTopic(new Topics(topics_entity.getString(j)));
+                                    }
+                                }
+                                found = true;
+                                break;
+                            }
                         }
                     }
                 }
+                if (!found && !namedEntities.containsKey(candidate)) {
+                    NamedEntity namedEntity = new NamedEntity(new Category("OTHER"), candidate);
+                    namedEntity.addTopic(new Topics("OTHER"));
+                    namedEntities.put(candidate, namedEntity);
+                }
             }
-            catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
+            // Imprimir las entidades nombradas
+            for (NamedEntity namedEntity : namedEntities.values()) {
+                namedEntity.namedEntityPrint();
             }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
             // TODO: Print stats
+            
             System.out.println("\nStats: ");
             System.out.println("-".repeat(80));
         }
+
+        if (config.getStatsFormat()){
+            
+            System.out.println("Entro a este if loool");
+        }
+
     }
 
     // TODO: Maybe relocate this function where it makes more sense
@@ -145,3 +184,21 @@ public class App {
     }
 
 }
+
+
+/*
+ 
+
+// Crear un Set para almacenar los elementos ya vistos
+Set<String> vistos = new HashSet<>();
+// Eliminar duplicados de la lista candidatos
+candidatos.removeIf(e -> !vistos.add(e)); // Si un elemento ya está en el Set, removeIf lo elimina de la lista
+
+// Crear una lista sin duplicados usando stream().distinct().collect()
+List<String> candidatosSinDuplicados = candidatos.stream().distinct().collect(Collectors.toList());
+
+// Convertir la lista a un Set para eliminar duplicados
+Set<String> candidatosSet = new HashSet<>(candidatos);
+
+
+ */
