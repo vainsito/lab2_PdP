@@ -1,7 +1,7 @@
 package namedEntities;
-import java.util.List;
 import java.util.HashMap;
-
+import java.util.HashSet;
+import java.util.Set;
 // Clase madre
 public class Category{
     private String name_categorie;
@@ -24,6 +24,10 @@ public class Category{
     public HashMap<String, String> getAttributes() {
         return attributes;
     }
+
+/*     public Set<String> getCategories_availible() {
+        return categories_availible;
+    } */
 
     // Metodo para imprimir cosas
     public void categoriePrint(){
