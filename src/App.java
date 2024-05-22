@@ -11,10 +11,7 @@ import feed.Article;
 import feed.FeedParser;
 import namedEntities.*;
 import namedEntities.heuristics.CapitalizedWordHeuristic;
-// Esto hay que preguntar si podemos importar
-import java.util.HashSet;
-import java.util.Set;
-// 
+
 import utils.JSONFilter;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -92,7 +89,6 @@ public class App {
         try {
             String content = new String(Files.readAllBytes(Paths.get("src/data/dictionary.json")), StandardCharsets.UTF_8);
             JSONArray jsonArray = new JSONArray(content);
-            Set<String> candidatosSet = new HashSet<>(candidatos);
 
             // Mapa para almacenar las entidades nombradas
             Map<String, NamedEntity> namedEntities = new HashMap<>();
