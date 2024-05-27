@@ -38,6 +38,10 @@ public class NamedEntity {
         return this.repetitions;
     }
 
+    public String getName() {
+        return this.entidad_nombrada;
+    }
+
     // Metodo para imprimir
     public void namedEntityPrint(){
         System.out.println("Named Entity: " + this.entidad_nombrada);
