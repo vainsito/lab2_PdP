@@ -7,15 +7,15 @@ public class Config {
     private String feedKey;
     // Agrego aca el atributo de heuristica para inicializar la config
     private String heuristicConfig;
-    // TODO: A reference to the used heuristic will be needed here
+    private String statSelected;
 
-    //Agrego el atributo al constructor de la config
-    public Config(boolean printFeed, boolean computeNamedEntities, boolean statsFormat, String feedKey, String heuristicConfig) {
+    public Config(boolean printFeed, boolean computeNamedEntities, boolean statsFormat, String feedKey, String heuristicConfig, String statSelected) {
         this.printFeed = printFeed;
         this.computeNamedEntities = computeNamedEntities;
         this.statsFormat = statsFormat;
         this.feedKey = feedKey;
         this.heuristicConfig = heuristicConfig; //Con esto le asignamos al campo privado de la heuristica
+        this.statSelected = statSelected;
     }
 
     public boolean getPrintFeed() {
@@ -36,5 +36,9 @@ public class Config {
 
     public String getHeuristicConfig() {
         return heuristicConfig; //Creamos un Public String de config 
+    }
+
+    public String getStatSelected() {
+        return statSelected;
     }
 }
