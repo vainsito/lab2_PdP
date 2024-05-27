@@ -10,26 +10,27 @@ import java.util.Map;
 import feed.Article;
 import feed.FeedParser;
 import namedEntities.*;
+import namedEntities.heuristics.AcronymWordHeuristic;
+import namedEntities.heuristics.PrecededWordHeuristic;
 import namedEntities.heuristics.CapitalizedWordHeuristic;
+import namedEntities.heuristics.Heuristic;
 
-import utils.JSONFilter;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 import utils.Config;
 import utils.FeedsData;
 import utils.JSONParser;
 import utils.UserInterface;
+import utils.NamedEntitiesUtils;
 
 public class App {
 
     public static void main(String[] args) {
 
         List<FeedsData> feedsDataArray = new ArrayList<>();
-        List<String> entitiesJsonArray = new ArrayList<>();
         try {
             feedsDataArray = JSONParser.parseJsonFeedsData("src/data/feeds.json");
-            /////
-            entitiesJsonArray = JSONFilter.parseJsonFilterData("src/data/dictionary.json", "label");
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -39,18 +40,18 @@ public class App {
         UserInterface ui = new UserInterface();
         Config config = ui.handleInput(args);
 
-        run(config, feedsDataArray, entitiesJsonArray);
+        run(config, feedsDataArray);
     }
 
     // TODO: Change the signature of this function if needed
-    private static void run(Config config, List<FeedsData> feedsDataArray, List <String> entitiesJsonArray) {
+    private static void run(Config config, List<FeedsData> feedsDataArray) {
 
         if (feedsDataArray == null || feedsDataArray.size() == 0) {
             System.out.println("No feeds data found");
             return;
         }
 
-        //Inicializacion de la lista de articulos
+        //Inicializacion de la lista de articulos se puede modularizar esto en article.java
         List<Article> allArticles = new ArrayList<>();
         for(FeedsData feedData : feedsDataArray){
             try {
@@ -77,81 +78,35 @@ public class App {
             // TODO: complete the message with the selected heuristic name
             System.out.println("Computing named entities using " + config.getHeuristicConfig());
             // TODO: compute named entities using the selected heuristic
-            CapitalizedWordHeuristic heuristic = new CapitalizedWordHeuristic();
+            // If para chequear que heuristica se esta utilizando
+            Heuristic heuristic = null;
 
-            List<String> candidatos = new ArrayList<>();
-            // For para obtener los posibles Names Entities
-            for (Article article : allArticles) {
-                // Guardo la descripcion del articulo en un string
-                candidatos.addAll(heuristic.extractCandidates(article.getDescription()));
+            if (config.getHeuristicConfig().equals("acronym")) {
+                heuristic = new AcronymWordHeuristic();
+            } else if (config.getHeuristicConfig().equals("preceded")) {
+                heuristic = new PrecededWordHeuristic();
+            } else if (config.getHeuristicConfig().equals("capitalized")) {
+                heuristic = new CapitalizedWordHeuristic();
+            } else {
+                System.out.println("Error!: Heuristic not found, please check the heuristic name and try again.");
+                System.exit(1);
             }
-            ////////////////////// A PARTIR DE ACA ES TERRENO NO EXPLORADO /////////////////////////////
-        try {
-            String content = new String(Files.readAllBytes(Paths.get("src/data/dictionary.json")), StandardCharsets.UTF_8);
-            JSONArray jsonArray = new JSONArray(content);
+            NamedEntitiesUtils entities_sorted = new NamedEntitiesUtils();
+            entities_sorted.sortEntities(allArticles, heuristic);
 
-            // Mapa para almacenar las entidades nombradas
-            Map<String, NamedEntity> namedEntities = new HashMap<>();
-
-            for (String candidate : candidatos) {
-                boolean found = false;
-                for (int pos = 0; pos < jsonArray.length(); pos++) {
-                    JSONObject jsonObject = jsonArray.getJSONObject(pos);
-                    if (jsonObject.has("keywords")) {
-                        JSONArray keywords = jsonObject.getJSONArray("keywords");
-                        for (int i = 0; i < keywords.length(); i++) {
-                            String keyword = keywords.getString(i);
-
-                            if (keyword.equalsIgnoreCase(candidate)) {
-                                NamedEntity namedEntity;
-                                boolean isNewEntity = false;
-                                if (namedEntities.containsKey(candidate)) {
-                                    // Si la entidad ya existe, incrementa el campo repetitions
-                                    namedEntity = namedEntities.get(candidate);
-                                    namedEntity.incrementRepetitions();
-                                } else {
-                                    // Si la entidad no existe, crea una nueva y añádela al mapa
-                                    namedEntity = new NamedEntity(new Category(jsonObject.getString("Category")), jsonObject.getString("label"));
-                                    namedEntities.put(candidate, namedEntity);
-                                    isNewEntity = true;
-                                }
-                            
-                                if (jsonObject.has("Topics") && isNewEntity) {
-                                    JSONArray topics_entity = jsonObject.getJSONArray("Topics");
-                                    for (int j = 0; j < topics_entity.length(); j++) {
-                                        namedEntity.addTopic(new Topics(topics_entity.getString(j)));
-                                    }
-                                }
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (!found && !namedEntities.containsKey(candidate)) {
-                    NamedEntity namedEntity = new NamedEntity(new Category("OTHER"), candidate);
-                    namedEntity.addTopic(new Topics("OTHER"));
-                    namedEntities.put(candidate, namedEntity);
-                }
-            }
-            // Imprimir las entidades nombradas
-            for (NamedEntity namedEntity : namedEntities.values()) {
-                namedEntity.namedEntityPrint();
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
             // TODO: Print stats
             
             System.out.println("\nStats: ");
             System.out.println("-".repeat(80));
-        }
-
-        if (config.getStatsFormat()){
+            // Obtengo la palabra para ver que stat quiero imprimir
+            try{
+                entities_sorted.printStats(config.getStatSelected());
+            } catch (Exception e) {
+                System.out.println("Error!: Stat not found, please check the stat name and try again.");
+                System.exit(1);
+            }
+            // TODO: Print the stats in the specified format, si es cat, imprime por categorias, si es topic imprime por topic
             
-            System.out.println("Entro a este if loool");
         }
 
     }
