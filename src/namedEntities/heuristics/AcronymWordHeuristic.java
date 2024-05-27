@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CapitalizedWordHeuristic implements Heuristic{
+public class AcronymWordHeuristic implements Heuristic {
 
     public List<String> extractCandidates(String text) {
         List<String> candidates = new ArrayList<>();
@@ -15,7 +15,7 @@ public class CapitalizedWordHeuristic implements Heuristic{
         text = Normalizer.normalize(text, Normalizer.Form.NFD);
         text = text.replaceAll("\\p{M}", "");
 
-        Pattern pattern = Pattern.compile("[A-Z][a-z]+(?:\\s[A-Z][a-z]+)*");
+        Pattern pattern = Pattern.compile("[A-Z]{3,5}");
 
         Matcher matcher = pattern.matcher(text);
 
