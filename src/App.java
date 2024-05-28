@@ -45,6 +45,11 @@ public class App {
 
     // TODO: Change the signature of this function if needed
     private static void run(Config config, List<FeedsData> feedsDataArray) {
+        // If para imprimir el help
+        if (config.getHelp()) {
+            printHelp(feedsDataArray);
+            return;
+        }
 
         if (feedsDataArray == null || feedsDataArray.size() == 0) {
             System.out.println("No feeds data found");
@@ -53,14 +58,30 @@ public class App {
 
         //Inicializacion de la lista de articulos se puede modularizar esto en article.java
         List<Article> allArticles = new ArrayList<>();
+        boolean use_feed = config.getFeedProvided() && config.getFeedKey() != null;
         for(FeedsData feedData : feedsDataArray){
-            try {
-                String contenido = FeedParser.fetchFeed(feedData.getUrl());
-                allArticles = FeedParser.parseXML(contenido);
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(1);
+            if (use_feed && config.getFeedKey().equals(feedData.getLabel())) {
+                try {
+                    String contenido = FeedParser.fetchFeed(feedData.getUrl());
+                    allArticles = FeedParser.parseXML(contenido);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
             }
+            else if (use_feed && !config.getFeedKey().equals(feedData.getLabel())) {
+                System.out.println("Feed key is not: " + feedData.getLabel() + " Skipping..");
+            }
+             else{
+                try {
+                    String contenido = FeedParser.fetchFeed(feedData.getUrl());
+                    List<Article> articles = FeedParser.parseXML(contenido);
+                    allArticles.addAll(articles);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+            } 
         }
 
         // Recorremos el array de feeds data para obtener el content xml
@@ -124,9 +145,11 @@ public class App {
         }
         System.out.println("  -ne, --named-entity <heuristicName>: Use the specified heuristic to extract");
         System.out.println("                                       named entities");
-        System.out.println("                                       Available heuristic names are: ");
+        System.out.println("                                       Available heuristic names are:");
+        System.out.println("                                           - acronym: Acronym-based heuristic");
+        System.out.println("                                           - preceded: Preceded word heuristic");
+        System.out.println("                                           - capitalized: Capitalized word heuristic");
         // TODO: Print the available heuristics with the following format
-        System.out.println("                                       <name>: <description>");
         System.out.println("  -pf, --print-feed:                   Print the fetched feed");
         System.out.println("  -sf, --stats-format <format>:        Print the stats in the specified format");
         System.out.println("                                       Available formats are: ");
