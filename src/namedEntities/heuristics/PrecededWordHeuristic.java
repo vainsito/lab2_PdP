@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CapitalizedWordHeuristic implements Heuristic {
+public class PrecededWordHeuristic implements Heuristic {
 
     public List<String> extractCandidates(String text) {
         List<String> candidates = new ArrayList<>();
@@ -14,13 +14,14 @@ public class CapitalizedWordHeuristic implements Heuristic {
         text = text.replaceAll("[-+.^:,\"]", "");
         text = Normalizer.normalize(text, Normalizer.Form.NFD);
         text = text.replaceAll("\\p{M}", "");
-
-        Pattern pattern = Pattern.compile("[A-Z][a-z]+(?:\\s[A-Z][a-z]+)*");
+        Pattern pattern = Pattern.compile(
+                "(?:Sr\\.|Sra\\.|Dr\\.|Dra\\.|Lic\\.|Ing\\.|el|El|la|La|los|Los|las|Las|yo|tu|ella|nosotros|vosotros|ellos|ellas)\\s([A-Z][a-z]+(?:\\s[A-Z][a-z]+)?)");
 
         Matcher matcher = pattern.matcher(text);
 
         while (matcher.find()) {
-            candidates.add(matcher.group());
+            String match = matcher.group(1);
+            candidates.add(match);
         }
         return candidates;
     }

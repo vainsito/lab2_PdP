@@ -1,4 +1,4 @@
-package utils; 
+package utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,10 +16,9 @@ public class UserInterface {
         options.add(new Option("-f", "--feed", 1));
         options.add(new Option("-ne", "--named-entity", 1));
         options.add(new Option("-pf", "--print-feed", 0));
-        options.add(new Option("-sf", "--stats-format", 1));
-        //Agregamos esta opcion para que el usuario pueda determinar la heuristica a emplear
-        options.add(new Option("-hs", "--heuristic", 1));
-
+        options.add(new Option("-sf", "--stats-format", 0));
+        // Agregamos esta opcion para que el usuario pueda determinar la heuristica a
+        // emplear
         optionDict = new HashMap<String, String>();
     }
 
@@ -45,10 +44,19 @@ public class UserInterface {
 
         Boolean printFeed = optionDict.containsKey("-pf");
         Boolean computeNamedEntities = optionDict.containsKey("-ne");
+        Boolean statsFormat = optionDict.containsKey("-sf");
+        Boolean help = optionDict.containsKey("-h");
+        Boolean feed_provided = optionDict.containsKey("-f");
         // TODO: use value for heuristic config
-        String heuristicConfig = optionDict.get("-hc"); // Obtengo el valor de heuristic pasada como parametro
+        String heuristicConfig = optionDict.get("-ne"); // Obtengo el valor de heuristic pasada como parametro
         String feedKey = optionDict.get("-f");
+        String statSelected = optionDict.get("-sf");
+        if (statSelected == null) {
+            statSelected = "cat";
+        }
+
         // Creo el objeto config, y agrego la heuristic
-        return new Config(printFeed, computeNamedEntities, feedKey, heuristicConfig);
+        return new Config(help, feed_provided, printFeed, computeNamedEntities, statsFormat, feedKey, heuristicConfig,
+                statSelected);
     }
 }
