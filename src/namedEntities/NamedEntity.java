@@ -1,6 +1,8 @@
 package namedEntities;
+
 import java.util.List;
 import java.util.ArrayList;
+
 public class NamedEntity {
 
     private String entidad_nombrada;
@@ -8,7 +10,7 @@ public class NamedEntity {
     private List<Topics> topics;
     private int repetitions;
 
-    // Constructor 
+    // Constructor
     public NamedEntity(Category category, String palabra) {
         this.category = category;
         this.topics = new ArrayList<>();
@@ -20,11 +22,11 @@ public class NamedEntity {
     public void addTopic(Topics topic) {
         this.topics.add(topic);
     }
-    
+
     public void incrementRepetitions() {
         this.repetitions++;
     }
-    
+
     // Getters
     public Category getCategory() {
         return category;
@@ -43,11 +45,11 @@ public class NamedEntity {
     }
 
     // Metodo para imprimir
-    public void namedEntityPrint(){
+    public void namedEntityPrint() {
         System.out.println("Named Entity: " + this.entidad_nombrada);
         this.category.categoriePrint();
-        System.out.println("Repeticiones : "+ this.repetitions);
-        for (Topics topic : this.topics){
+        System.out.println("Repeticiones : " + this.repetitions);
+        for (Topics topic : this.topics) {
             topic.topicPrint();
         }
         System.out.println("-".repeat(80));

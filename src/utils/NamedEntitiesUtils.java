@@ -42,14 +42,14 @@ public class NamedEntitiesUtils {
 
     public void sortEntities(List<Article> allArticles, Heuristic heuristic) {
         List<String> candidatos = new ArrayList<>();
-            // For para obtener los posibles Names Entities
-            for (Article article : allArticles) {
-                // Guardo la descripcion del articulo en un string
-                candidatos.addAll(heuristic.extractCandidates(article.getDescription()));
-            }
-            ////////////////////// A PARTIR DE ACA ES TERRENO NO EXPLORADO /////////////////////////////
+        // For para obtener los posibles Names Entities
+        for (Article article : allArticles) {
+            // Guardo la descripcion del articulo en un string
+            candidatos.addAll(heuristic.extractCandidates(article.getDescription()));
+        }
         try {
-            String content = new String(Files.readAllBytes(Paths.get("src/data/dictionary.json")), StandardCharsets.UTF_8);
+            String content = new String(Files.readAllBytes(Paths.get("src/data/dictionary.json")),
+                    StandardCharsets.UTF_8);
             JSONArray jsonArray = new JSONArray(content);
 
             // Mapa para almacenar las entidades nombradas, utilizando namedEntities
@@ -79,7 +79,7 @@ public class NamedEntitiesUtils {
                                     this.categories.add(category_entity.getName());
                                     isNewEntity = true;
                                 }
-                            
+
                                 if (jsonObject.has("Topics") && isNewEntity) {
                                     JSONArray topics_entity = jsonObject.getJSONArray("Topics");
                                     for (int j = 0; j < topics_entity.length(); j++) {
@@ -114,6 +114,7 @@ public class NamedEntitiesUtils {
             System.exit(1);
         }
     }
+
     // metodo para imprimir las entidades nombradas
     public void printNamedEntities() {
         for (NamedEntity namedEntity : this.namedEntities.values()) {
@@ -121,13 +122,16 @@ public class NamedEntitiesUtils {
         }
     }
 
-    // Metodo para imprimir las estadisticas de repetición de las entidades nombradas
+    // Metodo para imprimir las estadisticas de repetición de las entidades
+    // nombradas
 
     public void printStats(String statsSelected) {
-        // Si statsSelected es "cat" se imprimen las repeticiones de las entidades nombradas por categoría
-        // Si statsSelected es "top" se imprimen las repeticiones de las entidades nombradas por tópico
+        // Si statsSelected es "cat" se imprimen las repeticiones de las entidades
+        // nombradas por categoría
+        // Si statsSelected es "top" se imprimen las repeticiones de las entidades
+        // nombradas por tópico
 
-        if(statsSelected.equals("cat")){
+        if (statsSelected.equals("cat")) {
             for (String category : this.categories) {
                 System.out.println("Category: " + category);
                 for (NamedEntity namedEntity : this.namedEntities.values()) {
@@ -136,7 +140,7 @@ public class NamedEntitiesUtils {
                     }
                 }
             }
-        } else if(statsSelected.equals("top")){
+        } else if (statsSelected.equals("top")) {
             for (String topic : this.topics) {
                 System.out.println("Topic: " + topic);
                 for (NamedEntity namedEntity : this.namedEntities.values()) {
@@ -150,6 +154,6 @@ public class NamedEntitiesUtils {
             }
         } else {
             System.out.println("Invalid stats option");
-        } 
+        }
     }
 }

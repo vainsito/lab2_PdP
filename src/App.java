@@ -1,22 +1,13 @@
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import feed.Article;
 import feed.FeedParser;
-import namedEntities.*;
 import namedEntities.heuristics.AcronymWordHeuristic;
 import namedEntities.heuristics.PrecededWordHeuristic;
 import namedEntities.heuristics.CapitalizedWordHeuristic;
 import namedEntities.heuristics.Heuristic;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import utils.Config;
 import utils.FeedsData;
@@ -56,10 +47,11 @@ public class App {
             return;
         }
 
-        //Inicializacion de la lista de articulos se puede modularizar esto en article.java
+        // Inicializacion de la lista de articulos se puede modularizar esto en
+        // article.java
         List<Article> allArticles = new ArrayList<>();
         boolean use_feed = config.getFeedProvided() && config.getFeedKey() != null;
-        for(FeedsData feedData : feedsDataArray){
+        for (FeedsData feedData : feedsDataArray) {
             if (use_feed && config.getFeedKey().equals(feedData.getLabel())) {
                 try {
                     String contenido = FeedParser.fetchFeed(feedData.getUrl());
@@ -68,20 +60,18 @@ public class App {
                     e.printStackTrace();
                     System.exit(1);
                 }
-            }
-            else if (use_feed && !config.getFeedKey().equals(feedData.getLabel())) {
+            } else if (use_feed && !config.getFeedKey().equals(feedData.getLabel())) {
                 System.out.println("Feed key is not: " + feedData.getLabel() + " Skipping..");
-            }
-             else{
+            } else {
                 try {
                     String contenido = FeedParser.fetchFeed(feedData.getUrl());
                     List<Article> articles = FeedParser.parseXML(contenido);
                     allArticles.addAll(articles);
                 } catch (Exception e) {
+                    System.out.println("Error fetching feed: " + feedData.getLabel());
                     e.printStackTrace();
-                    System.exit(1);
                 }
-            } 
+            }
         }
 
         // Recorremos el array de feeds data para obtener el content xml
@@ -93,8 +83,8 @@ public class App {
                 article.prettyPrint();
             }
         }
-/////////////////////////////////////////////////////////////////////////////////////////////////
-        
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+
         if (config.getComputeNamedEntities()) {
             // TODO: complete the message with the selected heuristic name
             System.out.println("Computing named entities using " + config.getHeuristicConfig());
@@ -116,18 +106,19 @@ public class App {
             entities_sorted.sortEntities(allArticles, heuristic);
 
             // TODO: Print stats
-            
+
             System.out.println("\nStats: ");
             System.out.println("-".repeat(80));
             // Obtengo la palabra para ver que stat quiero imprimir
-            try{
+            try {
                 entities_sorted.printStats(config.getStatSelected());
             } catch (Exception e) {
                 System.out.println("Error!: Stat not found, please check the stat name and try again.");
                 System.exit(1);
             }
-            // TODO: Print the stats in the specified format, si es cat, imprime por categorias, si es topic imprime por topic
-            
+            // TODO: Print the stats in the specified format, si es cat, imprime por
+            // categorias, si es topic imprime por topic
+
         }
 
     }
@@ -158,21 +149,3 @@ public class App {
     }
 
 }
-
-
-/*
- 
-
-// Crear un Set para almacenar los elementos ya vistos
-Set<String> vistos = new HashSet<>();
-// Eliminar duplicados de la lista candidatos
-candidatos.removeIf(e -> !vistos.add(e)); // Si un elemento ya está en el Set, removeIf lo elimina de la lista
-
-// Crear una lista sin duplicados usando stream().distinct().collect()
-List<String> candidatosSinDuplicados = candidatos.stream().distinct().collect(Collectors.toList());
-
-// Convertir la lista a un Set para eliminar duplicados
-Set<String> candidatosSet = new HashSet<>(candidatos);
-
-
- */

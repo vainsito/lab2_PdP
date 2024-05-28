@@ -1,4 +1,4 @@
-package utils; 
+package utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,12 +17,13 @@ public class UserInterface {
         options.add(new Option("-ne", "--named-entity", 1));
         options.add(new Option("-pf", "--print-feed", 0));
         options.add(new Option("-sf", "--stats-format", 0));
-        //Agregamos esta opcion para que el usuario pueda determinar la heuristica a emplear
+        // Agregamos esta opcion para que el usuario pueda determinar la heuristica a
+        // emplear
         optionDict = new HashMap<String, String>();
     }
 
     public Config handleInput(String[] args) {
-        
+
         for (Integer i = 0; i < args.length; i++) {
             for (Option option : options) {
                 if (option.getName().equals(args[i]) || option.getLongName().equals(args[i])) {
@@ -55,6 +56,7 @@ public class UserInterface {
         }
 
         // Creo el objeto config, y agrego la heuristic
-        return new Config(help, feed_provided, printFeed, computeNamedEntities, statsFormat, feedKey, heuristicConfig, statSelected);
+        return new Config(help, feed_provided, printFeed, computeNamedEntities, statsFormat, feedKey, heuristicConfig,
+                statSelected);
     }
 }

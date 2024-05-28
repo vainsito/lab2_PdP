@@ -11,22 +11,22 @@ public class Config {
     private String heuristicConfig;
     private String statSelected;
 
-    public Config(boolean help,boolean feed_provided,boolean printFeed, boolean computeNamedEntities, boolean statsFormat, String feedKey, String heuristicConfig, String statSelected) {
+    public Config(boolean help, boolean feed_provided, boolean printFeed, boolean computeNamedEntities,
+            boolean statsFormat, String feedKey, String heuristicConfig, String statSelected) {
         this.help = help;
         this.feed_provided = feed_provided;
         this.printFeed = printFeed;
         this.computeNamedEntities = computeNamedEntities;
         this.statsFormat = statsFormat;
         this.feedKey = feedKey;
-        this.heuristicConfig = heuristicConfig; //Con esto le asignamos al campo privado de la heuristica
+        this.heuristicConfig = heuristicConfig; // Con esto le asignamos al campo privado de la heuristica
         this.statSelected = statSelected;
     }
 
-
-    public boolean getHelp(){
+    public boolean getHelp() {
         return help;
     }
-    
+
     public boolean getFeedProvided() {
         return feed_provided;
     }
@@ -48,7 +48,7 @@ public class Config {
     }
 
     public String getHeuristicConfig() {
-        return heuristicConfig; //Creamos un Public String de config 
+        return heuristicConfig; // Creamos un Public String de config
     }
 
     public String getStatSelected() {
