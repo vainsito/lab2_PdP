@@ -4,16 +4,15 @@ import java.util.List;
 
 import feed.Article;
 import feed.FeedParser;
-import namedEntities.heuristics.AcronymWordHeuristic;
-import namedEntities.heuristics.PrecededWordHeuristic;
-import namedEntities.heuristics.CapitalizedWordHeuristic;
 import namedEntities.heuristics.Heuristic;
+import namedEntities.heuristics.HeuristicMaker;
 
 import utils.Config;
 import utils.FeedsData;
 import utils.JSONParser;
 import utils.UserInterface;
 import utils.NamedEntitiesUtils;
+import utils.ArticleListMaker;
 
 public class App {
 
@@ -49,30 +48,7 @@ public class App {
 
         // Inicializacion de la lista de articulos se puede modularizar esto en
         // article.java
-        List<Article> allArticles = new ArrayList<>();
-        boolean use_feed = config.getFeedProvided() && config.getFeedKey() != null;
-        for (FeedsData feedData : feedsDataArray) {
-            if (use_feed && config.getFeedKey().equals(feedData.getLabel())) {
-                try {
-                    String contenido = FeedParser.fetchFeed(feedData.getUrl());
-                    allArticles = FeedParser.parseXML(contenido);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
-            } else if (use_feed && !config.getFeedKey().equals(feedData.getLabel())) {
-                System.out.println("Feed key is not: " + feedData.getLabel() + " Skipping..");
-            } else {
-                try {
-                    String contenido = FeedParser.fetchFeed(feedData.getUrl());
-                    List<Article> articles = FeedParser.parseXML(contenido);
-                    allArticles.addAll(articles);
-                } catch (Exception e) {
-                    System.out.println("Error fetching feed: " + feedData.getLabel());
-                    e.printStackTrace();
-                }
-            }
-        }
+        List<Article> allArticles = ArticleListMaker.makeArticleList(config, feedsDataArray);
 
         // Recorremos el array de feeds data para obtener el content xml
         // TODO: Populate allArticles with articles from corresponding feeds
@@ -89,17 +65,13 @@ public class App {
             // TODO: complete the message with the selected heuristic name
             System.out.println("Computing named entities using " + config.getHeuristicConfig());
             // TODO: compute named entities using the selected heuristic
-            // If para chequear que heuristica se esta utilizando
+            // chequear que heuristica se esta utilizando
             Heuristic heuristic = null;
 
-            if (config.getHeuristicConfig().equals("acronym")) {
-                heuristic = new AcronymWordHeuristic();
-            } else if (config.getHeuristicConfig().equals("preceded")) {
-                heuristic = new PrecededWordHeuristic();
-            } else if (config.getHeuristicConfig().equals("capitalized")) {
-                heuristic = new CapitalizedWordHeuristic();
-            } else {
-                System.out.println("Error!: Heuristic not found, please check the heuristic name and try again.");
+            try {
+                heuristic = HeuristicMaker.makeHeuristic(config.getHeuristicConfig());
+            } catch (IllegalArgumentException e) {
+                System.out.println(e.getMessage());
                 System.exit(1);
             }
             NamedEntitiesUtils entities_sorted = new NamedEntitiesUtils();
