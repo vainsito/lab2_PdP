@@ -1,11 +1,17 @@
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.File;
 
 import feed.Article;
 import feed.FeedParser;
 import namedEntities.heuristics.Heuristic;
-import namedEntities.heuristics.HeuristicMaker;
+import namedEntities.heuristics.makeHeuristic;
+
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.sql.SparkSession;
 
 import utils.Config;
 import utils.FeedsData;
@@ -14,13 +20,14 @@ import utils.UserInterface;
 import utils.NamedEntitiesUtils;
 import utils.ArticleListMaker;
 
-public class App {
+
+public class App { 
 
     public static void main(String[] args) {
-
+        
         List<FeedsData> feedsDataArray = new ArrayList<>();
         try {
-            feedsDataArray = JSONParser.parseJsonFeedsData("src/data/feeds.json");
+            feedsDataArray = JSONParser.parseJsonFeedsData("src/main/resources/feeds.json");
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -46,10 +53,18 @@ public class App {
             return;
         }
 
-        // Inicializacion de la lista de articulos se puede modularizar esto en
-        // article.java
+        // <> archivo para guardar los articulos
+        File archivo = new File("src/data/bigdata.txt");
+        try{
+            if (!archivo.exists()) {
+                archivo.createNewFile();
+            }
+        } catch (IOException e) {
+            System.err.println("An error while creating the file");
+        }
         List<Article> allArticles = ArticleListMaker.makeArticleList(config, feedsDataArray);
-
+        // <> Esto tambien guarda las descripciones en resources/bigdata.txt
+        
         // Recorremos el array de feeds data para obtener el content xml
         // TODO: Populate allArticles with articles from corresponding feeds
         if (config.getPrintFeed()) {
@@ -60,23 +75,23 @@ public class App {
             }
         }
         /////////////////////////////////////////////////////////////////////////////////////////////////
-
+        
         if (config.getComputeNamedEntities()) {
+            SparkSession spark = SparkSession
+            .builder()
+            .appName("NamedEntitiesTHING")
+            .getOrCreate();
+            
+            JavaRDD<String> lines = spark.read().textFile("src/data/bigdata.txt").javaRDD();
             // TODO: complete the message with the selected heuristic name
             System.out.println("Computing named entities using " + config.getHeuristicConfig());
             // TODO: compute named entities using the selected heuristic
             // chequear que heuristica se esta utilizando
             Heuristic heuristic = null;
-
-            try {
-                heuristic = HeuristicMaker.makeHeuristic(config.getHeuristicConfig());
-            } catch (IllegalArgumentException e) {
-                System.out.println(e.getMessage());
-                System.exit(1);
-            }
+            
             NamedEntitiesUtils entities_sorted = new NamedEntitiesUtils();
-            entities_sorted.sortEntities(allArticles, heuristic);
-
+            entities_sorted.sortEntities(lines, config.getHeuristicConfig());
+            
             // TODO: Print stats
 
             System.out.println("\nStats: ");
@@ -90,7 +105,7 @@ public class App {
             }
             // TODO: Print the stats in the specified format, si es cat, imprime por
             // categorias, si es topic imprime por topic
-
+            spark.stop();
         }
 
     }

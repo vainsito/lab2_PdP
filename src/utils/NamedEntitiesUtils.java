@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.spark.api.java.JavaRDD;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -20,6 +22,7 @@ import namedEntities.Category;
 import namedEntities.NamedEntity;
 import namedEntities.Topics;
 import namedEntities.heuristics.Heuristic;
+
 
 // Clase que se encarga de ordenar las entidades y de imprimir las estadistica
 public class NamedEntitiesUtils {
@@ -40,21 +43,24 @@ public class NamedEntitiesUtils {
 
     // Metodos
 
-    public void sortEntities(List<Article> allArticles, Heuristic heuristic) {
-        List<String> candidatos = new ArrayList<>();
-        // For para obtener los posibles Names Entities
-        for (Article article : allArticles) {
-            // Guardo la descripcion del articulo en un string
-            candidatos.addAll(heuristic.extractCandidates(article.getDescription()));
-        }
+    public void sortEntities(JavaRDD<String> lines, String heuristic) {
+        heuristic = new makeHeuristic();
+        try{
+            JavaRDD<String> candidatos = heuristic.extractCandidates(lines, heuristic);
+        } catch (IllegalArgumentException e) {
+            System.exit(1);
+        } 
+        
+        List<String> candidatosLISTA = candidatos.collect();
+
         try {
-            String content = new String(Files.readAllBytes(Paths.get("src/data/dictionary.json")),
+            String content = new String(Files.readAllBytes(Paths.get("src/main/resources/dictionary.json")),
                     StandardCharsets.UTF_8);
             JSONArray jsonArray = new JSONArray(content);
 
             // Mapa para almacenar las entidades nombradas, utilizando namedEntities
 
-            for (String candidate : candidatos) {
+            for (String candidate : candidatosLISTA) {
                 boolean found = false;
                 for (int pos = 0; pos < jsonArray.length(); pos++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(pos);

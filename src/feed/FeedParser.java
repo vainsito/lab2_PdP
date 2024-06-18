@@ -33,7 +33,10 @@ public class FeedParser {
                     String description = item.split("<description>")[1].split("</description>")[0];
                     String pubDate = item.split("<pubDate>")[1].split("</pubDate>")[0];
                     String link = item.split("<link>")[1].split("</link>")[0];
-                    res.add(new Article(title, description, pubDate, link));
+                    article = new Article(title, description, pubDate, link);
+                    res.add(article);
+                    article.writeDescriptionToFile("src/data/bigdata.txt");
+                    
                 }
             }
 
@@ -47,6 +50,7 @@ public class FeedParser {
             System.exit(1);
         }
 
+        
         return res;
     }
 

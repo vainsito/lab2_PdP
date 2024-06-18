@@ -1,5 +1,10 @@
 package feed;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+
 public class Article {
     // Tenemos que agregar los atributos: title, description, pubDate, link.
     private String title;
@@ -41,5 +46,14 @@ public class Article {
         System.out.println("Publication Date: " + pubDate);
         System.out.println("Link: " + link);
         System.out.println("*****************************************************************************************");
+    }
+
+    public void writeDescriptionToFile(String filePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
+            writer.write(description);
+            writer.newLine();
+        } catch (IOException e) {
+            System.err.print("An error occurred while writing to the file");
+        }
     }
 }

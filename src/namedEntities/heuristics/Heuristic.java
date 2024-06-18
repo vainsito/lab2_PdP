@@ -6,5 +6,5 @@ import java.util.List;
 // Esto me va a permitir modularizar el codigo, y no tener la necedidad de repetir el codigo
 // en funcion de la heuristica que se quiera emplear
 public interface Heuristic {
-    List<String> extractCandidates(String text);
+    JavaRDD<String> extractCandidates(JavaRDD<String>lines, String heuristic);
 }
