@@ -51,51 +51,48 @@ public class NamedEntitiesUtils {
             System.exit(1);
         } 
         
-        List<String> candidatosLISTA = candidatos.collect();
+        // Esto es para que funcione temporalmente lo que sigue
+        List<String> candidatosLISTA = candidatos.collect(); // <---
 
-        try {
+        try { 
             String content = new String(Files.readAllBytes(Paths.get("src/main/resources/dictionary.json")),
                     StandardCharsets.UTF_8);
             JSONArray jsonArray = new JSONArray(content);
 
             // Mapa para almacenar las entidades nombradas, utilizando namedEntities
 
-            for (String candidate : candidatosLISTA) {
-                boolean found = false;
+            candidatos.foreach(candidate -> {
                 for (int pos = 0; pos < jsonArray.length(); pos++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(pos);
                     if (jsonObject.has("keywords")) {
                         JSONArray keywords = jsonObject.getJSONArray("keywords");
                         for (int i = 0; i < keywords.length(); i++) {
                             String keyword = keywords.getString(i);
-
+    
                             if (keyword.equalsIgnoreCase(candidate)) {
-                                NamedEntity namedEntity;
-                                boolean isNewEntity = false;
-                                if (this.namedEntities.containsKey(candidate)) {
-                                    // Si la entidad ya existe, incrementa el campo repetitions
-                                    namedEntity = this.namedEntities.get(candidate);
-                                    namedEntity.incrementRepetitions();
-                                } else {
-                                    Category category_entity = new Category(jsonObject.getString("Category"));
-                                    // Si la entidad no existe, crea una nueva y añádela al mapa
-                                    namedEntity = new NamedEntity(category_entity, jsonObject.getString("label"));
-                                    this.namedEntities.put(candidate, namedEntity);
-                                    // Si la entidad es nueva, añade los tópicos y categorías
-                                    this.categories.add(category_entity.getName());
-                                    isNewEntity = true;
-                                }
-
-                                if (jsonObject.has("Topics") && isNewEntity) {
-                                    JSONArray topics_entity = jsonObject.getJSONArray("Topics");
-                                    for (int j = 0; j < topics_entity.length(); j++) {
-                                        Topics topico = new Topics(topics_entity.getString(j));
-                                        namedEntity.addTopic(topico);
-                                        // Si el tópico no existe, añádelo a la lista de tópicos
-                                        this.topics.add(topico.getName());
+                                synchronized (namedEntities) { // el compadre GTP dice que hay que sincronizar esto..
+                                    NamedEntity namedEntity;   // ...por que lo modifican varios worker
+                                    boolean isNewEntity = false;
+                                    if (namedEntities.containsKey(candidate)) { // race condition
+                                        namedEntity = namedEntities.get(candidate);
+                                        namedEntity.incrementRepetitions();
+                                    } else {
+                                        Category category_entity = new Category(jsonObject.getString("Category"));
+                                        namedEntity = new NamedEntity(category_entity, jsonObject.getString("label"));
+                                        namedEntities.put(candidate, namedEntity);
+                                        categories.add(category_entity.getName());
+                                        isNewEntity = true;
                                     }
-                                }
-                                found = true;
+    
+                                    if (jsonObject.has("Topics") && isNewEntity) { 
+                                        JSONArray topics_entity = jsonObject.getJSONArray("Topics");
+                                        for (int j = 0; j < topics_entity.length(); j++) {
+                                            Topics topico = new Topics(topics_entity.getString(j));
+                                            namedEntity.addTopic(topico);
+                                            topics.add(topico.getName());
+                                        }
+                                    }
+                                } // la sincronizacion acaba aqui. (es ridiculo sincronizar la verdad, pierde la gracia usar Spark)
                                 break;
                             }
                         }
@@ -109,7 +106,13 @@ public class NamedEntitiesUtils {
                     this.categories.add("OTHER");
                     this.topics.add("OTHER");
                 }
-            }
+            }); // Aqui termina el for each 
+
+
+            // <> no se necesita un collect de nada por que solo utilizamos los datos del RDD y no creamos ni modificamos uno nuevo...
+            // YYY ENTONCES el print de los datos los dejamos como estan, con el namedEntities.........................
+            // Todo este codigo es adivinar eh xD
+
             // Imprimir las entidades nombradas
             for (NamedEntity namedEntity : this.namedEntities.values()) {
                 namedEntity.namedEntityPrint();
