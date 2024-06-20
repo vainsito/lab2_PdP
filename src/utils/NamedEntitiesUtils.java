@@ -22,7 +22,7 @@ import namedEntities.Category;
 import namedEntities.NamedEntity;
 import namedEntities.Topics;
 import namedEntities.heuristics.Heuristic;
-
+import namedEntities.heuristics.makeHeuristic;
 
 // Clase que se encarga de ordenar las entidades y de imprimir las estadistica
 public class NamedEntitiesUtils {
@@ -44,9 +44,12 @@ public class NamedEntitiesUtils {
     // Metodos
 
     public void sortEntities(JavaRDD<String> lines, String heuristic) {
-        heuristic = new makeHeuristic();
+
+        Heuristic heuristica = new makeHeuristic(); //aca
+        JavaRDD<String> candidatos = null; // aca
+
         try{
-            JavaRDD<String> candidatos = heuristic.extractCandidates(lines, heuristic);
+            candidatos = heuristica.extractCandidates(lines, heuristic);
         } catch (IllegalArgumentException e) {
             System.exit(1);
         } 
@@ -98,7 +101,7 @@ public class NamedEntitiesUtils {
                         }
                     }
                 }
-                if (!found && !this.namedEntities.containsKey(candidate)) {
+                if (!this.namedEntities.containsKey(candidate)) {
                     NamedEntity namedEntity = new NamedEntity(new Category("OTHER"), candidate);
                     namedEntity.addTopic(new Topics("OTHER"));
                     this.namedEntities.put(candidate, namedEntity);

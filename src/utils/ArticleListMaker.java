@@ -8,7 +8,6 @@ import feed.FeedParser;
 import utils.Config;
 
 
-
 public class ArticleListMaker {
     public static List<Article> makeArticleList(Config config, List<FeedsData> feedsDataArray){
         List<Article> res = new ArrayList<>();

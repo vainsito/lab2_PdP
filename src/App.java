@@ -83,28 +83,25 @@ public class App {
             .getOrCreate();
             
             JavaRDD<String> lines = spark.read().textFile("src/data/bigdata.txt").javaRDD();
-            // TODO: complete the message with the selected heuristic name
+  
             System.out.println("Computing named entities using " + config.getHeuristicConfig());
-            // TODO: compute named entities using the selected heuristic
-            // chequear que heuristica se esta utilizando
+       
             Heuristic heuristic = null;
             
             NamedEntitiesUtils entities_sorted = new NamedEntitiesUtils();
             entities_sorted.sortEntities(lines, config.getHeuristicConfig());
             
-            // TODO: Print stats
 
             System.out.println("\nStats: ");
             System.out.println("-".repeat(80));
-            // Obtengo la palabra para ver que stat quiero imprimir
+        
             try {
                 entities_sorted.printStats(config.getStatSelected());
             } catch (Exception e) {
                 System.out.println("Error!: Stat not found, please check the stat name and try again.");
                 System.exit(1);
             }
-            // TODO: Print the stats in the specified format, si es cat, imprime por
-            // categorias, si es topic imprime por topic
+  
             spark.stop();
         }
 
@@ -136,3 +133,4 @@ public class App {
     }
 
 }
+

@@ -1,5 +1,6 @@
 package feed;
 
+//import java.io.Serializable;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
